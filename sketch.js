@@ -3,17 +3,18 @@ const KeyA = 65;
 const KeyS = 83;
 const KeyD = 68;
 
-const PAGE_SIZE = 1_000;
-const PLAYER_HEIGHT = 20;
-const STEP_SIZE = 10;
+const PAGE_SIZE = 1_200;
+const PLAYER_HEIGHT = PAGE_SIZE/20;
+const STEP_SIZE = PLAYER_HEIGHT/5;
 
-const PLAYER1_COLOR = "navy";
+const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
 const BORDER_COLOR = "black";
-const BORDER_WIDTH = PLAYER_HEIGHT/10;
+const BORDER_WIDTH = PLAYER_HEIGHT/8;
 const BORDER_FREQ = 0.6;
+const FRIENDLY_BORDERS = 10;
 
-const GRID_ORDER = 20;
+const GRID_ORDER = PAGE_SIZE/100;
 
 let player1;
 let player2;
@@ -28,6 +29,7 @@ class Player{
     this.x = x;
     this.y = y;
     this.height = height;
+    this.width = this.height/2;
     this.stepSize = stepSize;
     this.isPlayer1 = playerBool;
   }
@@ -44,21 +46,57 @@ class Player{
     circle(this.x, this.y-(this.height/4), this.height/2);
     circle(this.x, this.y-(13*this.height/20), this.height*3/10);
     circle(this.x, this.y-(18*this.height/20), this.height/5);
+
+    // debugging
+    rect(this.x-this.width/2, this.y-this.height, this.width, this.height);
+  }
+
+  borderCollide(border) {
+    switch (border.isHorizontal) {
+      case true:
+        // horizontal border, check that the y coordinates don't hit it
+        if (this.y > border.y && this.y-this.height < border.y){
+          //console.log("inside horizontal collision case");
+
+          return (this.x - this.width/2 > border.x && this.x + this.width/2 < border.x + border.size);
+        }
+        break;
+      default:
+        // vertical border
+        if (this.x - this.width/2 < border.x && this.x + this.width/2 > border.x){
+          //console.log("inside vertical collision case");
+          //console.log(border)
+          return (this.y > border.y && this.y - this.height < border.y + border.size);
+        }
+    }
+    return false;
   }
 
 }
 
 class Border {
-  constructor(x, y, size, isHorizontal) {
+  constructor(x, y, size, isHorizontal, group) {
     this.x = x;
     this.y = y;
     this.size = size;
     this.isHorizontal = isHorizontal;
+    this.group = group; // if 0, no group, else associated with player n
   }
 
   show(pg) {
-    fill(BORDER_COLOR);
-    strokeWeight(BORDER_WIDTH);
+
+    switch (this.group) {
+      case 1:
+        pg.stroke(PLAYER1_COLOR);
+        break;
+      case 2:
+        pg.stroke(PLAYER2_COLOR);
+        break;
+      default:
+        pg.stroke(BORDER_COLOR);
+    }
+    
+    pg.strokeWeight(BORDER_WIDTH);
 
     switch (this.isHorizontal) {
       case true:
@@ -76,29 +114,29 @@ function drawPlayers() {
 
   // Steady movement, 1/3rd step
   if (keyIsDown(UP_ARROW)) {
-    player2.y-=STEP_SIZE/2;
+    player2.y-=STEP_SIZE*2/3;
   }
   if (keyIsDown(RIGHT_ARROW)) {
-    player2.x+=STEP_SIZE/2;
+    player2.x+=STEP_SIZE*2/3;
   }
   if (keyIsDown(LEFT_ARROW)) {
-    player2.x-=STEP_SIZE/2;
+    player2.x-=STEP_SIZE*2/3;
   }
   if (keyIsDown(DOWN_ARROW)) {
-    player2.y+=STEP_SIZE/2;
+    player2.y+=STEP_SIZE*2/3;
   }
   
   if (keyIsDown(KeyW)) {
-    player1.y-=STEP_SIZE/2;
+    player1.y-=STEP_SIZE*2/3;
   }
   if (keyIsDown(KeyA)) {
-    player1.x-=STEP_SIZE/2;
+    player1.x-=STEP_SIZE*2/3;
   }
   if (keyIsDown(KeyS)) {
-    player1.y+=STEP_SIZE/2;
+    player1.y+=STEP_SIZE*2/3;
   }
   if (keyIsDown(KeyD)) {
-    player1.x+=STEP_SIZE/2;
+    player1.x+=STEP_SIZE*2/3;
   }
 
   // Collision logic with wall
@@ -112,6 +150,15 @@ function drawPlayers() {
       player.y = PAGE_SIZE;
     } else if (player.y-PLAYER_HEIGHT < 0) {
       player.y = PLAYER_HEIGHT;
+    }
+  }
+
+  // Collision logic with border
+  for (let player of players) {
+    for (let border of borders) {
+      if (player.borderCollide(border)) {
+        //console.log("{} collide with: {}", player, border);
+      }
     }
   }
 
@@ -138,9 +185,15 @@ function generateBorders(background) {
     }
   }
 
+  let index = 0;
+
   // add the borders to background
   for (let border of borders) {
+
+    border.group = index % 5;
+    
     background = border.show(background);
+    index++;
   }
 
   return background;
@@ -188,6 +241,8 @@ function keyPressed() {
   } else if (keyCode === RIGHT_ARROW) {
     player2.x += STEP_SIZE;
   }
-  
-  return false;
 }
+
+
+// hinging doors
+// buttons to manipulate state
