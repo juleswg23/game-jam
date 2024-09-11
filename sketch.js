@@ -5,24 +5,24 @@ const KeyD = 68;
 
 const PAGE_SIZE = 1_200;
 const PLAYER_HEIGHT = PAGE_SIZE/20;
-const STEP_SIZE = PLAYER_HEIGHT/10;
+const STEP_SIZE = PLAYER_HEIGHT/5;
 
 const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
 const BORDER_COLOR = "black";
 const BORDER_WIDTH = 7;
 const BORDER_FREQ = 0.6;
-const GROUP_DENSITY = 5;
+const GROUP_DENSITY = 10;
 
 const GRID_ORDER = PAGE_SIZE/100;
 
 let player1;
 let player2;
-let players;
-
 let bg;
-let grid;
+
+let players;
 let borders = [];
+let buttons = [];
 
 class Player{
   constructor(x, y, height, stepSize, id) {
@@ -115,10 +115,37 @@ class Border {
 
 }
 
-function drawBorders() {
-  for (let b of borders) {
-    borderGraphic = b.show()
+class Button {
+  constructor( x, y, size, group, type) {
+    this.group = group;
+    this.type = type;
+    this.x = x;
+    this.y = y;
+    this.size = size;
   }
+
+  // draw it on the board
+  show() {
+    circle(this.x, this.y, this.size);
+  }
+}
+
+function drawBorders() {
+
+    // Show black borders first
+  for (let b of borders) {
+    borderGraphic = b.show();
+  }
+
+  // show player borders on top
+  for (let p of players) {
+    for (let b of borders) {
+      if (b.group == p.id) {
+        borderGraphic = b.show();
+      }
+    }
+  }
+
 }
 
 function updateBorders(group) {
@@ -128,6 +155,13 @@ function updateBorders(group) {
     }
   }
 }
+
+function drawButtons() {
+  for (let button of buttons) {
+    button.show();
+  }
+}
+
 
 function drawPlayers() { 
 
@@ -162,10 +196,14 @@ function drawPlayers() {
     player.step = STEP_SIZE;
     for (let border of borders) {
       if (player.borderCollide(border)) {
-        // if player and collide are same color, ignore it
+        console.log("collide with ", border.group);
+
+        // if player collides with border of their color,
         if (player.id == border.group) {
           //console.log("collision with color");
+          updateBorders(player.id);
           continue;
+
         }
        
         // handle collision with out of color conflict
@@ -240,13 +278,38 @@ function drawPlayers() {
   player2.show();
 }
 
-/* Helper for creating borders, run once */
 
+/* pseudo random to be able to test gameply consistently */
+
+var m_w = 123456789;
+var m_z = 987654321;
+var mask = 0xffffffff;
+
+// Takes any integer
+function seed(i) {
+    m_w = (123456789 + i) & mask;
+    m_z = (987654321 - i) & mask;
+}
+
+// Returns number between 0 (inclusive) and 1.0 (exclusive)
+function pseudo_random()
+{
+    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
+    result /= 4294967296;
+    return result;
+}
+
+seed(40);
+
+
+/* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
   for (let i = 1; i < GRID_ORDER-1; i++) {
     for (let j = 1; j < GRID_ORDER; j++) {
-      if (Math.random() < BORDER_FREQ) {
+      if (pseudo_random() < BORDER_FREQ) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true, 0));
       }
     }
@@ -255,7 +318,7 @@ function generateBorders() {
   // create vertical borders
   for (let i = 1; i < GRID_ORDER; i++) {
     for (let j = 1; j < GRID_ORDER-1; j++) {
-      if (Math.random() < BORDER_FREQ) {
+      if (pseudo_random() < BORDER_FREQ) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false, 0));
       }
     }
@@ -268,6 +331,19 @@ function generateBorders() {
     border.group = index % GROUP_DENSITY;
     index++;
   }
+}
+
+/* Helper for creating buttons, run once */
+function generateButtons() {
+  // make end buttons
+  for (let p of players) {
+    let x = PAGE_SIZE - (1.5*PAGE_SIZE/GRID_ORDER);
+    let y = PAGE_SIZE - (1.5*PAGE_SIZE/GRID_ORDER);
+    buttons.push(new Button(x, y, PLAYER_HEIGHT/2, p.id, "finish"));
+  }
+
+  // make trigger buttons
+
 }
 
 
@@ -287,42 +363,25 @@ function setup() {
 
   generateBorders();
 
+  generateButtons();
 }
 
 /* Game loop */
-
 
 function draw() {
   clear();
   image(bg, 0, 0);
   drawBorders();
+  drawButtons();
 
   strokeWeight(2); drawPlayers();
 }
 
-// Starting movement, full step
-// function keyPressed() {
-//   if (key === 'w') {
-//     player1.y -= STEP_SIZE;
-//   } else if (key === 'a') {
-//     player1.x -= STEP_SIZE;
-//   } else if (key === 's') {
-//     player1.y += STEP_SIZE;
-//   } else if (key === 'd') {
-//     player1.x += STEP_SIZE;
-//   }
-
-//   if (keyCode === UP_ARROW) {
-//     player2.y -= STEP_SIZE;
-//   } else if (keyCode === LEFT_ARROW) {
-//     player2.x -= STEP_SIZE;
-//   } else if (keyCode === DOWN_ARROW) {
-//     player2.y += STEP_SIZE;
-//   } else if (keyCode === RIGHT_ARROW) {
-//     player2.x += STEP_SIZE;
-//   }
-// }
-
 
 // hinging doors
 // buttons to manipulate state
+// end location
+// simultaneous actions
+
+//layer the borders
+//simultaneuous border hits cause glitch
