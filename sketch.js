@@ -163,8 +163,13 @@ function drawPlayers() {
     for (let border of borders) {
       if (player.borderCollide(border)) {
         // if player and collide are same color, ignore it
+        if (player.id == border.group) {
+          console.log("collision with color");
+          continue;
+        }
        
         // handle collision with out of color conflict
+        // Get sides of border
         let border_top = border.y;
         let border_left = border.x;
         let border_bottom = border.y;
@@ -175,37 +180,25 @@ function drawPlayers() {
           border_bottom = border.y + border.size;
         }
 
-        console.log("vert", border_top, border_bottom, border_right, border_left);
-        console.log("below", border_bottom - player.y);
-        console.log("above", (player.y + player.height) - border_top);
-        console.log("right", border_right - player.x);
-        console.log("left", (player.x + player.width) - border_left);
-        
-
+        // Find nearest point of contact
         let nearest = [100000, ""];
 
         if (border_bottom - player.y < nearest[0] && border_bottom > player.y) {
           nearest[0] = border_bottom - player.y;
           nearest[1] = "below";
-          console.log("below")
         }
         if ((player.y + player.height) - border_top < nearest[0] && (player.y + player.height) > border_top) {
           nearest[0] = (player.y + player.height) - border_top;
           nearest[1] = "above";
-          console.log("above");
         }
-
         if (border_right - player.x < nearest[0] && border_right > player.x ) {
           nearest[0] = border_right - player.x;
           nearest[1] = "right";
-          console.log("right");
         }
         if ((player.x + player.width) - border_left < nearest[0] && (player.x + player.width) > border_left) {
           nearest[0] = (player.x + player.width) - border_left;
           nearest[1] = "left";
-          console.log("left");
         }
-        console.log(nearest[0], nearest[1]);
 
         switch (nearest[1]) {
           case "below":
