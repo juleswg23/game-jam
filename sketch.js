@@ -39,9 +39,12 @@ class Player{
     switch (this.id) {
       case 1:
         fill(PLAYER1_COLOR);
+        stroke("black")
         break
-      default:
+      case 2:
         fill(PLAYER2_COLOR);
+        stroke("black");
+        break;
     }
 
     rect(this.x, this.y, this.width, this.height);
@@ -86,39 +89,36 @@ class Border {
     this.group = group; // if 0, no group, else associated with player n
   }
 
-  addTo(pg) {
+  show() {
 
     switch (this.group) {
       case 1:
-        pg.stroke(PLAYER1_COLOR);
+        stroke(PLAYER1_COLOR);
         break;
       case 2:
-        pg.stroke(PLAYER2_COLOR);
+        stroke(PLAYER2_COLOR);
         break;
       default:
-        pg.stroke(BORDER_COLOR);
+        stroke(BORDER_COLOR);
     }
     
-    pg.strokeWeight(BORDER_WIDTH);
+    strokeWeight(BORDER_WIDTH);
 
     switch (this.isHorizontal) {
       case true:
-        pg.line(this.x, this.y, this.x+this.size, this.y);
+        line(this.x, this.y, this.x+this.size, this.y);
         break;
       default:
-        pg.line(this.x, this.y, this.x, this.y+this.size);
+        line(this.x, this.y, this.x, this.y+this.size);
     }
-    return pg;
   }
 
 }
 
 function drawBorders() {
-  let borderGraphic = createGraphics(PAGE_SIZE, PAGE_SIZE);
   for (let b of borders) {
-    borderGraphic = b.addTo(borderGraphic);
+    borderGraphic = b.show()
   }
-  return borderGraphic;
 }
 
 function updateBorders(group) {
@@ -164,7 +164,7 @@ function drawPlayers() {
       if (player.borderCollide(border)) {
         // if player and collide are same color, ignore it
         if (player.id == border.group) {
-          console.log("collision with color");
+          //console.log("collision with color");
           continue;
         }
        
@@ -236,42 +236,6 @@ function drawPlayers() {
     }
   }
 
-  // Collision logic with border
-  // for (let player of players) {
-  //   for (let border of borders) {
-  //     if (player.borderCollide(border)) {
-  //       switch (key) {
-  //         case 'w':
-  //           player.y += STEP_SIZE*2;
-  //           break;
-  //         case 'a':
-  //           player.x += STEP_SIZE*2;
-  //           break;
-  //         case 's':
-  //           player.y -= STEP_SIZE*2;
-  //           break;
-  //         case 'd':
-  //           player.x -= STEP_SIZE*2;
-  //           break;
-  //         case UP_ARROW:
-  //           player.y += STEP_SIZE*2;
-  //           break;
-  //         case LEFT_ARROW:
-  //           player.x += STEP_SIZE*2;
-  //           break;
-  //         case DOWN_ARROW:
-  //           player.y -= STEP_SIZE*2;
-  //           break;
-  //         case RIGHT_ARROW:
-  //           player.x -= STEP_SIZE*2;
-  //           break;
-  //         default: 
-  //           console.log(key);
-  //       }
-  //     }
-  //   }
-  // }
-
   player1.show();
   player2.show();
 }
@@ -331,7 +295,7 @@ function setup() {
 function draw() {
   clear();
   image(bg, 0, 0);
-  image(drawBorders(), 0, 0);
+  drawBorders();
 
   strokeWeight(2); drawPlayers();
 }
