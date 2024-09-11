@@ -24,6 +24,32 @@ let players = [];
 let borders = [];
 let buttons = [];
 
+/* pseudo random to be able to test gameply consistently */
+
+var m_w = 123456789;
+var m_z = 987654321;
+var mask = 0xffffffff;
+
+// Takes any integer
+function seed(i) {
+    m_w = (123456789 + i) & mask;
+    m_z = (987654321 - i) & mask;
+}
+
+// Returns number between 0 (inclusive) and 1.0 (exclusive)
+function pseudo_random()
+{
+    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
+    result /= 4294967296;
+    return result;
+}
+
+seed(40);
+
+/* Game logic */ 
+
 class Player{
   constructor(x, y, height, stepSize, id) {
     this.x = x;
@@ -279,31 +305,6 @@ function drawPlayers() {
 }
 
 
-/* pseudo random to be able to test gameply consistently */
-
-var m_w = 123456789;
-var m_z = 987654321;
-var mask = 0xffffffff;
-
-// Takes any integer
-function seed(i) {
-    m_w = (123456789 + i) & mask;
-    m_z = (987654321 - i) & mask;
-}
-
-// Returns number between 0 (inclusive) and 1.0 (exclusive)
-function pseudo_random()
-{
-    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
-    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
-    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
-    result /= 4294967296;
-    return result;
-}
-
-seed(40);
-
-
 /* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
@@ -329,9 +330,12 @@ function generateBorders() {
   // recolor the borders
   for (let border of borders) {
     // ensure im not coloring a border at the edge.
-    // if b
-    border.group = index % GROUP_DENSITY;
-    index++;
+    if (border.x == PAGE_SIZE-PAGE_SIZE/GRID_ORDER || border.y == PAGE_SIZE-PAGE_SIZE/GRID_ORDER) {
+      border.group = 0;
+    } else {
+      border.group = index % GROUP_DENSITY;
+      index++;
+    }
   }
 
   // sort them by color
