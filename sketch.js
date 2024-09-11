@@ -20,7 +20,7 @@ let player1;
 let player2;
 let bg;
 
-let players;
+let players = [];
 let borders = [];
 let buttons = [];
 
@@ -133,18 +133,18 @@ class Button {
 function drawBorders() {
 
     // Show black borders first
-  for (let b of borders) {
+  for (let b of borders.toReversed()) {
     borderGraphic = b.show();
   }
 
   // show player borders on top
-  for (let p of players) {
-    for (let b of borders) {
-      if (b.group == p.id) {
-        borderGraphic = b.show();
-      }
-    }
-  }
+  // for (let p of players) {
+  //   for (let b of borders) {
+  //     if (b.group == p.id) {
+  //       borderGraphic = b.show();
+  //     }
+  //   }
+  // }
 
 }
 
@@ -307,7 +307,7 @@ seed(40);
 /* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
-  for (let i = 0; i < GRID_ORDER; i++) {
+  for (let i = 1; i < GRID_ORDER-1; i++) {
     for (let j = 1; j < GRID_ORDER; j++) {
       if (pseudo_random() < BORDER_FREQ) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true, 0));
@@ -317,7 +317,7 @@ function generateBorders() {
 
   // create vertical borders
   for (let i = 1; i < GRID_ORDER; i++) {
-    for (let j = 0; j < GRID_ORDER; j++) {
+    for (let j = 1; j < GRID_ORDER-1; j++) {
       if (pseudo_random() < BORDER_FREQ*2/3) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false, 0));
       }
@@ -326,10 +326,27 @@ function generateBorders() {
 
   let index = 0;
 
-  // add the borders to background
+  // recolor the borders
   for (let border of borders) {
+    // ensure im not coloring a border at the edge.
+    // if b
     border.group = index % GROUP_DENSITY;
     index++;
+  }
+
+  // sort them by color
+  let end = borders.length - 1;
+  let i = 0;
+  while (i < end) {
+    if (borders[i].group <= players.length && borders[i].group > 0) {
+      // is a colored border
+      let tmp = borders[end];
+      borders[end] = borders[i];
+      borders[i] = tmp;
+      end--;
+    } else {
+      i++;
+    }
   }
 }
 
