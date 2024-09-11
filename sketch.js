@@ -11,10 +11,11 @@ const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
 const BORDER_COLOR = "black";
 const BORDER_WIDTH = 7;
-const BORDER_FREQ = 0.6;
-const GROUP_DENSITY = 10;
+const BORDER_FREQ = 0.64;
+const GROUP_DENSITY = 6;
 
-const GRID_ORDER = PAGE_SIZE/100;
+const GRID_ORDER = Math.ceil(PAGE_SIZE/100);
+const GRID_CELL_WIDTH = PAGE_SIZE/GRID_ORDER;
 
 let player1;
 let player2;
@@ -311,7 +312,7 @@ function generateBorders() {
   for (let i = 1; i < GRID_ORDER-1; i++) {
     for (let j = 1; j < GRID_ORDER; j++) {
       if (pseudo_random() < BORDER_FREQ) {
-        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true, 0));
+        borders.push(new Border(i*GRID_CELL_WIDTH, j*GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0));
       }
     }
   }
@@ -320,7 +321,7 @@ function generateBorders() {
   for (let i = 1; i < GRID_ORDER; i++) {
     for (let j = 1; j < GRID_ORDER-1; j++) {
       if (pseudo_random() < BORDER_FREQ*2/3) {
-        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false, 0));
+        borders.push(new Border(i*GRID_CELL_WIDTH, j*GRID_CELL_WIDTH, GRID_CELL_WIDTH, false, 0));
       }
     }
   }
@@ -330,12 +331,21 @@ function generateBorders() {
   // recolor the borders
   for (let border of borders) {
     // ensure im not coloring a border at the edge.
-    if (border.x == PAGE_SIZE-PAGE_SIZE/GRID_ORDER || border.y == PAGE_SIZE-PAGE_SIZE/GRID_ORDER) {
+    if (border.x == PAGE_SIZE-GRID_CELL_WIDTH || border.y == PAGE_SIZE-GRID_CELL_WIDTH) {
       border.group = 0;
     } else {
       border.group = index % GROUP_DENSITY;
       index++;
     }
+  }
+
+  //create boundary borders
+  for (let i = 1; i < GRID_ORDER-1; i++) {
+    borders.push(new Border(i*GRID_CELL_WIDTH, GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0));
+    borders.push(new Border(i*GRID_CELL_WIDTH, PAGE_SIZE-GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0));
+    borders.push(new Border(GRID_CELL_WIDTH, i*GRID_CELL_WIDTH, GRID_CELL_WIDTH, false, 0));
+    borders.push(new Border(PAGE_SIZE-GRID_CELL_WIDTH, i*GRID_CELL_WIDTH, GRID_CELL_WIDTH, false, 0));
+
   }
 
   // sort them by color
@@ -358,8 +368,8 @@ function generateBorders() {
 function generateButtons() {
   // make end buttons
   for (let p of players) {
-    let x = PAGE_SIZE - (1.5*PAGE_SIZE/GRID_ORDER);
-    let y = PAGE_SIZE - (1.5*PAGE_SIZE/GRID_ORDER);
+    let x = PAGE_SIZE - (1.5*GRID_CELL_WIDTH);
+    let y = PAGE_SIZE - (1.5*GRID_CELL_WIDTH);
     buttons.push(new Button(x, y, PLAYER_HEIGHT/2, p.id, "finish"));
   }
 
@@ -371,8 +381,8 @@ function generateButtons() {
 /* Game setup, run once */
 
 function setup() {
-  player1 = new Player(PLAYER_HEIGHT, PLAYER_HEIGHT, PLAYER_HEIGHT, STEP_SIZE, 1);
-  player2 = new Player(PAGE_SIZE-PLAYER_HEIGHT, PAGE_SIZE-PLAYER_HEIGHT, PLAYER_HEIGHT, STEP_SIZE, 2);
+  player1 = new Player(1.5*GRID_CELL_WIDTH, 1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 1);
+  player2 = new Player(PAGE_SIZE-1.5*GRID_CELL_WIDTH, PAGE_SIZE-1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
   players = [player1, player2];
 
   createCanvas(PAGE_SIZE, PAGE_SIZE);
@@ -398,12 +408,12 @@ function draw() {
   strokeWeight(2); drawPlayers();
 }
 
-
+// TODOS
 // hinging doors
 // buttons to manipulate state
 // end location
 // simultaneous actions
-
+// Border animations
 // layer the borders - black on top?
 // simultaneuous border hits cause glitch
 // draw borders around everything
