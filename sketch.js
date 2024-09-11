@@ -5,7 +5,7 @@ const KeyD = 68;
 
 const PAGE_SIZE = 1_200;
 const PLAYER_HEIGHT = PAGE_SIZE/20;
-const STEP_SIZE = PLAYER_HEIGHT/1000;
+const STEP_SIZE = PLAYER_HEIGHT/10;
 
 const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
@@ -13,7 +13,6 @@ const BORDER_COLOR = "black";
 const BORDER_WIDTH = 7;
 const BORDER_FREQ = 0.6;
 const GROUP_DENSITY = 5;
-
 
 const GRID_ORDER = PAGE_SIZE/100;
 
@@ -33,6 +32,7 @@ class Player{
     this.width = this.height/2;
     this.stepSize = stepSize;
     this.id = id;
+    this.step = STEP_SIZE;
   }
 
   show() {
@@ -43,33 +43,31 @@ class Player{
       default:
         fill(PLAYER2_COLOR);
     }
-  
-    circle(this.x, this.y-(this.height/4), this.height/2);
-    circle(this.x, this.y-(13*this.height/20), this.height*3/10);
-    circle(this.x, this.y-(18*this.height/20), this.height/5);
+
+    rect(this.x, this.y, this.width, this.height);
+
+
+    circle(this.x + this.width/2, this.y+(2*this.height/20), this.height/5); // smallest
+    circle(this.x + this.width/2, this.y+(7*this.height/20), this.height*3/10);
+    circle(this.x + this.width/2, this.y+(15*this.height/20), this.height/2); // largest
 
     // debugging
-    rect(this.x-this.width/2, this.y-this.height, this.width, this.height);
   }
 
   borderCollide(border) {
     switch (border.isHorizontal) {
       case true:
         // horizontal border, check that the y coordinates don't hit it
-        if (this.y > border.y && this.y-this.height < border.y){
-          if (this.x - this.width/2 < border.x + border.size && this.x + this.width/2 > border.x) {
-            //updateBorders(this.group);
+        if (this.y+this.height > border.y && this.y < border.y){
+          if (this.x < border.x + border.size && this.x + this.width > border.x) {
             return true;
           }
         }
         break;
       default:
         // vertical border
-        if (this.x - this.width/2 < border.x && this.x + this.width/2 > border.x){
-          if (this.y > border.y && this.y - this.height < border.y + border.size) {
-            // do some action
-            //updateBorders(this.group);
-
+        if (this.x < border.x && this.x + this.width > border.x){
+          if (this.y+this.height > border.y && this.y < border.y + border.size) {
             return true;
           }
         }
@@ -83,7 +81,7 @@ class Border {
   constructor(x, y, size, isHorizontal, group) {
     this.x = x;
     this.y = y;
-    this.size = size;
+    this.size = size
     this.isHorizontal = isHorizontal;
     this.group = group; // if 0, no group, else associated with player n
   }
@@ -132,54 +130,116 @@ function updateBorders(group) {
 }
 
 function drawPlayers() { 
-  // Steady movement, 2/3rds step
-  //console.log(key);
+
+  if (keyIsDown(UP_ARROW)) {
+    player2.y -= player2.step;
+  }
+  if (keyIsDown(RIGHT_ARROW)) {
+    player2.x += player2.step;
+  }
+  if (keyIsDown(LEFT_ARROW)) {
+    player2.x -= player2.step;
+  }
+  if (keyIsDown(DOWN_ARROW)) {
+    player2.y += player2.step;
+  }
+  
+  if (keyIsDown(KeyW)) {
+    player1.y-=STEP_SIZE;
+  }
+  if (keyIsDown(KeyA)) {
+    player1.x-=STEP_SIZE;
+  }
+  if (keyIsDown(KeyS)) {
+    player1.y+=STEP_SIZE;
+  }
+  if (keyIsDown(KeyD)) {
+    player1.x+=STEP_SIZE;
+  }
+
+  // Collide with wall
   for (let player of players) {
+    player.step = STEP_SIZE;
     for (let border of borders) {
-      let collision = player.borderCollide(border);
-      let step = collision ? -(STEP_SIZE*2) : STEP_SIZE*2/3;
+      if (player.borderCollide(border)) {
+        // if player and collide are same color, ignore it
+       
+        // handle collision with out of color conflict
+        let border_top = border.y;
+        let border_left = border.x;
+        let border_bottom = border.y;
+        let border_right = border.x;
+        if (border.isHorizontal) {
+          border_right = border.x + border.size;
+        } else {
+          border_bottom = border.y + border.size;
+        }
 
-      console.log("collision: ", collision, " step: ", step);
+        console.log("vert", border_top, border_bottom, border_right, border_left);
+        console.log("below", border_bottom - player.y);
+        console.log("above", (player.y + player.height) - border_top);
+        console.log("right", border_right - player.x);
+        console.log("left", (player.x + player.width) - border_left);
+        
 
-      if (keyIsDown(UP_ARROW)) {
-        player2.y -= step;
-      }
-      if (keyIsDown(RIGHT_ARROW)) {
-        player2.x += step;
-      }
-      if (keyIsDown(LEFT_ARROW)) {
-        player2.x -= step;
-      }
-      if (keyIsDown(DOWN_ARROW)) {
-        player2.y += step;
-      }
-      
-      if (keyIsDown(KeyW)) {
-        player1.y-=STEP_SIZE*2/3;
-      }
-      if (keyIsDown(KeyA)) {
-        player1.x-=STEP_SIZE*2/3;
-      }
-      if (keyIsDown(KeyS)) {
-        player1.y+=STEP_SIZE*2/3;
-      }
-      if (keyIsDown(KeyD)) {
-        player1.x+=STEP_SIZE*2/3;
-      }
+        let nearest = [100000, ""];
+
+        if (border_bottom - player.y < nearest[0] && border_bottom > player.y) {
+          nearest[0] = border_bottom - player.y;
+          nearest[1] = "below";
+          console.log("below")
+        }
+        if ((player.y + player.height) - border_top < nearest[0] && (player.y + player.height) > border_top) {
+          nearest[0] = (player.y + player.height) - border_top;
+          nearest[1] = "above";
+          console.log("above");
+        }
+
+        if (border_right - player.x < nearest[0] && border_right > player.x ) {
+          nearest[0] = border_right - player.x;
+          nearest[1] = "right";
+          console.log("right");
+        }
+        if ((player.x + player.width) - border_left < nearest[0] && (player.x + player.width) > border_left) {
+          nearest[0] = (player.x + player.width) - border_left;
+          nearest[1] = "left";
+          console.log("left");
+        }
+        console.log(nearest[0], nearest[1]);
+
+        switch (nearest[1]) {
+          case "below":
+            player.y = border_bottom;
+            break;
+          case "above":
+            player.y = border_top - player.height;
+            break;
+          case "right":
+            player.x = border_right;
+            break;
+          case "left":
+            player.x = border_left - player.width;
+            break;
+          default:
+            //
+        }
+
+      }      
     }
   }
 
+
   // Collision logic with wall
   for (let player of players) {
-    if (player.x+PLAYER_HEIGHT/5 > PAGE_SIZE) {
-      player.x = PAGE_SIZE-PLAYER_HEIGHT/5;
-    } else if (player.x-PLAYER_HEIGHT/5 < 0) {
-      player.x = PLAYER_HEIGHT/5;
+    if (player.x+player.width > PAGE_SIZE) {
+      player.x = PAGE_SIZE-player.width;
+    } else if (player.x < 0) {
+      player.x = 0;
     }
-    if (player.y > PAGE_SIZE) {
-      player.y = PAGE_SIZE;
-    } else if (player.y-PLAYER_HEIGHT < 0) {
-      player.y = PLAYER_HEIGHT;
+    if (player.y > PAGE_SIZE - player.height) {
+      player.y = PAGE_SIZE - player.height;
+    } else if (player.y < 0) {
+      player.y = 0;
     }
   }
 
@@ -230,7 +290,7 @@ function generateBorders() {
   for (let i = 1; i < GRID_ORDER-1; i++) {
     for (let j = 1; j < GRID_ORDER; j++) {
       if (Math.random() < BORDER_FREQ) {
-        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true));
+        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true, 0));
       }
     }
   }
@@ -239,7 +299,7 @@ function generateBorders() {
   for (let i = 1; i < GRID_ORDER; i++) {
     for (let j = 1; j < GRID_ORDER-1; j++) {
       if (Math.random() < BORDER_FREQ) {
-        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false));
+        borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false, 0));
       }
     }
   }
