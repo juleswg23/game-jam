@@ -307,7 +307,7 @@ seed(40);
 /* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
-  for (let i = 1; i < GRID_ORDER-1; i++) {
+  for (let i = 0; i < GRID_ORDER; i++) {
     for (let j = 1; j < GRID_ORDER; j++) {
       if (pseudo_random() < BORDER_FREQ) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, true, 0));
@@ -317,8 +317,8 @@ function generateBorders() {
 
   // create vertical borders
   for (let i = 1; i < GRID_ORDER; i++) {
-    for (let j = 1; j < GRID_ORDER-1; j++) {
-      if (pseudo_random() < BORDER_FREQ) {
+    for (let j = 0; j < GRID_ORDER; j++) {
+      if (pseudo_random() < BORDER_FREQ*2/3) {
         borders.push(new Border(i*PAGE_SIZE/GRID_ORDER, j*PAGE_SIZE/GRID_ORDER, PAGE_SIZE/GRID_ORDER, false, 0));
       }
     }
@@ -383,5 +383,6 @@ function draw() {
 // end location
 // simultaneous actions
 
-//layer the borders
-//simultaneuous border hits cause glitch
+// layer the borders - black on top?
+// simultaneuous border hits cause glitch
+// draw borders around everything
