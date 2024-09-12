@@ -9,14 +9,14 @@ const BORDER_COLOR = "black";
 const BORDER_WIDTH = 6;
 
 const PAGE_SIZE = 1_000;
-const PLAYER_HEIGHT = PAGE_SIZE/20;
+const PLAYER_HEIGHT = PAGE_SIZE/25;
 const STEP_SIZE = PLAYER_HEIGHT/5;
 const GRID_ORDER = Math.ceil(PAGE_SIZE/100);
 const GRID_CELL_WIDTH = PAGE_SIZE/GRID_ORDER;
 
-const BORDER_FREQ = 0.64;
-const GROUP_DENSITY = 6;
-const BUTTON_COUNT = 3;
+const BORDER_FREQ = 0.7;
+const GROUP_DENSITY = 5;
+const BUTTON_COUNT = 2;
 
 let player1;
 let player2;
@@ -49,7 +49,7 @@ function pseudo_random()
     return result;
 }
 
-seed(40);
+seed(6);
 
 /* Game logic */ 
 
@@ -330,11 +330,8 @@ function drawPlayers() {
         }
       }
     }
-  }
 
-
-  // Collision logic with wall
-  for (let player of players) {
+    // collide with wall
     if (player.x+player.width > PAGE_SIZE) {
       player.x = PAGE_SIZE-player.width;
     } else if (player.x < 0) {
@@ -419,9 +416,13 @@ function generateButtons() {
     buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish"));
   }
 
-  // make toggle buttons
-  for (let i = 0; i < BUTTON_COUNT; i++) {
 
+  // make toggle buttons
+  for (let i = 0; i < BUTTON_COUNT*2; i++) {
+    // TODO place buttons
+    let x = Math.floor(pseudo_random()*(GRID_ORDER-2)) + 1.5; // ensure no button outside of grid
+    let y = Math.floor(pseudo_random()*(GRID_ORDER-2)) + 1.5;
+    buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
 }
