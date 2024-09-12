@@ -17,7 +17,7 @@ const GRID_CELL_WIDTH = PAGE_SIZE/GRID_ORDER;
 const BORDER_FREQ = 0.7;
 const GROUP_DENSITY = 5;
 const BUTTON_COUNT = 2;
-const ACTIVE_RATE = 2;
+const ACTIVE_RATE = 3;
 
 let player1;
 let player2;
@@ -151,27 +151,31 @@ class Border {
   }
 
   show() {
-    if (this.active == 0) {
-      switch (this.group) {
-        case 1:
-          stroke(PLAYER1_COLOR);
-          break;
-        case 2:
-          stroke(PLAYER2_COLOR);
-          break;
-        default:
-          stroke(BORDER_COLOR);
-      }
-      
-      strokeWeight(BORDER_WIDTH);
+    let c;
+    switch (this.group) {
+      case 1:
+        c = color(PLAYER1_COLOR);
+        break;
+      case 2:
+        c = color(PLAYER2_COLOR);
+        break;
+      default:
+        c = color(BORDER_COLOR);
+    }
 
-      switch (this.isHorizontal) {
-        case true:
-          line(this.x, this.y, this.x+this.size, this.y);
-          break;
-        default:
-          line(this.x, this.y, this.x, this.y+this.size);
-      }
+    if (this.active != 0) {
+      c.setAlpha(20);
+    }
+    stroke(c);
+    
+    strokeWeight(BORDER_WIDTH);
+
+    switch (this.isHorizontal) {
+      case true:
+        line(this.x, this.y, this.x+this.size, this.y);
+        break;
+      default:
+        line(this.x, this.y, this.x, this.y+this.size);
     }
   }
 
@@ -402,7 +406,8 @@ function generateBorders() {
     }
   }
 
-  let index = 0;
+  let group_index = 0;
+  let active_index = 0;
 
   // recolor the borders
   for (let border of borders) {
@@ -410,8 +415,15 @@ function generateBorders() {
     if (border.x == PAGE_SIZE-GRID_CELL_WIDTH || border.y == PAGE_SIZE-GRID_CELL_WIDTH) {
       border.group = 0;
     } else {
-      border.group = index % GROUP_DENSITY;
-      index++;
+      border.group = group_index % GROUP_DENSITY;
+
+      // enable and disable some borders
+      if (border.group <= players.length && border.group > 0) {
+        border.active = Math.floor(active_index / ACTIVE_RATE) % ACTIVE_RATE;
+        active_index++;
+      }
+
+      group_index++;
     }
   }
 
