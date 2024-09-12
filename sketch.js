@@ -109,7 +109,27 @@ class Player{
 
   buttonCollide(button) {
     switch (button.type) {
+      case "toggle":
+        let testX = button.x;
+        let testY = button.y;
+        if (button.x < this.x)                  testX = this.x;                // left edge
+        else if (button.x > this.x+this.width)  testX = this.x+this.width;     // right edge
 
+        if (button.y < this.y)                  testY = this.y;                 // top edge
+        else if (button.y > this.y+this.height) testY = this.y+this.height;     // bottom edge
+
+        let distX = button.x-testX;
+        let distY = button.y-testY;
+        let distance = Math.sqrt( (distX*distX) + (distY*distY) );
+        if (distance <= button.size) {
+          return true;
+        }
+
+        break;
+      case "finish":
+
+      default:
+        break;
     }
 
     return false;
@@ -159,6 +179,7 @@ class Button {
     this.x = x;
     this.y = y;
     this.size = size;
+    this.isColliding = new Array(players.length).fill(false);
   }
 
   // draw it on the board
@@ -174,6 +195,9 @@ class Button {
       default:
         fill(BORDER_COLOR);
     }
+
+    if (this.isColliding.includes(true)) fill(BORDER_COLOR);
+
     if (this.type == "toggle") {
       circle(this.x, this.y, this.size);
     }
@@ -317,7 +341,10 @@ function drawPlayers() {
         switch (button.type) {
           // update borders since we collided with a toggle button
           case "toggle":
-            if (player.id == button.group) {
+            if (player.id == button.group && !button.isColliding[player.id-1]) {
+              button.isColliding[player.id-1] = true;
+              console.log("collided with ", button.isColliding);
+
               updateBorders(player.id);
             }
             break;
@@ -328,6 +355,11 @@ function drawPlayers() {
           default:
             break; // pass
         }
+        console.log("collided with ", button.isColliding);
+
+      }
+      else {
+        button.isColliding[player.id-1] = false;
       }
     }
 
@@ -458,12 +490,9 @@ function draw() {
 }
 
 // TODOS
-// hinging doors
 // buttons to manipulate state
-// end location
 // simultaneous actions
 // Border animations
 // layer the borders - black on top?
 // simultaneuous border hits cause glitch
-// draw borders around everything
 // sound on collide
