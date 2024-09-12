@@ -3,23 +3,25 @@ const KeyA = 65;
 const KeyS = 83;
 const KeyD = 68;
 
-const PAGE_SIZE = 1_200;
-const PLAYER_HEIGHT = PAGE_SIZE/20;
-const STEP_SIZE = PLAYER_HEIGHT/5;
-
 const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
 const BORDER_COLOR = "black";
-const BORDER_WIDTH = 7;
-const BORDER_FREQ = 0.64;
-const GROUP_DENSITY = 6;
+const BORDER_WIDTH = 6;
 
+const PAGE_SIZE = 1_000;
+const PLAYER_HEIGHT = PAGE_SIZE/20;
+const STEP_SIZE = PLAYER_HEIGHT/5;
 const GRID_ORDER = Math.ceil(PAGE_SIZE/100);
 const GRID_CELL_WIDTH = PAGE_SIZE/GRID_ORDER;
+
+const BORDER_FREQ = 0.64;
+const GROUP_DENSITY = 6;
+const BUTTON_COUNT = 3;
 
 let player1;
 let player2;
 let bg;
+let checkered_flag;
 
 let players = [];
 let borders = [];
@@ -105,6 +107,14 @@ class Player{
     return false;
   }
 
+  buttonCollide(button) {
+    switch (button.type) {
+
+    }
+
+    return false;
+  }
+
 }
 
 class Border {
@@ -153,7 +163,24 @@ class Button {
 
   // draw it on the board
   show() {
-    circle(this.x, this.y, this.size);
+    strokeWeight(PLAYER_HEIGHT/15)
+    switch (this.group) {
+      case 1:
+        fill(PLAYER1_COLOR);
+        break;
+      case 2:
+        fill(PLAYER2_COLOR);
+        break;
+      default:
+        fill(BORDER_COLOR);
+    }
+    if (this.type == "toggle") {
+      circle(this.x, this.y, this.size);
+    }
+     if (this.type == "finish") {
+      image(checkered_flag, this.x-this.size/2, this.y-this.size/2, this.size, this.size);
+    }
+    
   }
 }
 
@@ -284,6 +311,25 @@ function drawPlayers() {
 
       }      
     }
+
+    for (let button of buttons) {
+      if (player.buttonCollide(button)) {
+        switch (button.type) {
+          // update borders since we collided with a toggle button
+          case "toggle":
+            if (player.id == button.group) {
+              updateBorders(player.id);
+            }
+            break;
+          // made it to finish line
+          case "finish":
+            // TODO some finish line action!
+            break;
+          default:
+            break; // pass
+        }
+      }
+    }
   }
 
 
@@ -366,14 +412,17 @@ function generateBorders() {
 
 /* Helper for creating buttons, run once */
 function generateButtons() {
-  // make end buttons
+  // make finish buttons
   for (let p of players) {
-    let x = PAGE_SIZE - (1.5*GRID_CELL_WIDTH);
-    let y = PAGE_SIZE - (1.5*GRID_CELL_WIDTH);
-    buttons.push(new Button(x, y, PLAYER_HEIGHT/2, p.id, "finish"));
+    let x = PAGE_SIZE - p.x;
+    let y = PAGE_SIZE - p.y;
+    buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish"));
   }
 
-  // make trigger buttons
+  // make toggle buttons
+  for (let i = 0; i < BUTTON_COUNT; i++) {
+
+  }
 
 }
 
@@ -381,19 +430,18 @@ function generateButtons() {
 /* Game setup, run once */
 
 function setup() {
+  clear();
   player1 = new Player(1.5*GRID_CELL_WIDTH, 1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 1);
   player2 = new Player(PAGE_SIZE-1.5*GRID_CELL_WIDTH, PAGE_SIZE-1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
   players = [player1, player2];
 
   createCanvas(PAGE_SIZE, PAGE_SIZE);
-  // createBorderOutline()
-
   bg = createGraphics(PAGE_SIZE, PAGE_SIZE);
   bg.background(225);
   image(bg, 0, 0);
 
   generateBorders();
-
+  checkered_flag = loadImage("libraries/checkered-flag.png");
   generateButtons();
 }
 
@@ -417,3 +465,4 @@ function draw() {
 // layer the borders - black on top?
 // simultaneuous border hits cause glitch
 // draw borders around everything
+// sound on collide
