@@ -570,8 +570,6 @@ function setup() {
   instructions_button = createButton("Display Instructions");
   instructions_button.position(PAGE_SIZE - new_game_button.width - buffer*2 - instructions_button.width, buffer);
   instructions_button.mousePressed(display_instructions);
-
-  console.log(BORDER_FREQ, GROUP_DENSITY, BUTTON_COUNT, ACTIVE_RATE)
 }
 
 /* Game loop */
