@@ -16,11 +16,11 @@ let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
 
 let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
 let STEP_SIZE = GRID_CELL_WIDTH/14;
-
 let BORDER_WIDTH = GRID_CELL_WIDTH/10;
-let BORDER_FREQ = 0.8;
-let GROUP_DENSITY = 4;
-let BUTTON_COUNT = 2;
+
+let BORDER_FREQ;
+let GROUP_DENSITY;
+let BUTTON_COUNT;
 let ACTIVE_RATE = 3;
 
 let player1;
@@ -30,6 +30,7 @@ let checkered_flag;
 let new_game_button;
 let easier_button;
 let harder_button;
+let instructions_button;
 
 let game_over = [];
 let players = [];
@@ -497,19 +498,29 @@ function changeDifficulty(direction) {
   }
 }
 
+function display_instructions() {
+  alert(`    Players collaborate to assist the other in finishing each level.
+    Each player must reach the flag in the opposing corner.
+
+    WASD controls the blue player.
+    The arrow keys control the red player.
+
+    Players may go through borders of their own color.
+    Players may walk over a button to toggle borders on/off.
+    `);
+}
+
 /* Game setup, run at start of game */
 
 function setup() {
   clear();
 
-  DIFFICULTY = Math.min(Math.max(DIFFICULTY, 6), 30);
+  DIFFICULTY = Math.min(Math.max(DIFFICULTY, 7), 30);
   // based on difficulty
   GRID_CELLS_ACROSS = Math.max(DIFFICULTY + 2, 5);
   BORDER_FREQ = 0.007*DIFFICULTY + 0.69;
-  GROUP_DENSITY = Math.max(Math.floor(Math.sqrt(DIFFICULTY)), 3);
+  GROUP_DENSITY = Math.max(Math.floor(Math.sqrt(DIFFICULTY)), 3) + 1;
   BUTTON_COUNT = Math.max(Math.floor(Math.sqrt(DIFFICULTY)), 2);
-  ACTIVE_RATE = 3;
-
 
   buttons = []
   players = []
@@ -554,6 +565,11 @@ function setup() {
   harder_button = createButton("Harder");
   harder_button.position(buffer*2 + easier_button.width, buffer);
   harder_button.mousePressed(changeDifficulty("harder"));
+
+  if (instructions_button) instructions_button.hide();
+  instructions_button = createButton("Display Instructions");
+  instructions_button.position(PAGE_SIZE - new_game_button.width - buffer*2 - instructions_button.width, buffer);
+  instructions_button.mousePressed(display_instructions);
 
   console.log(BORDER_FREQ, GROUP_DENSITY, BUTTON_COUNT, ACTIVE_RATE)
 }
