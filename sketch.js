@@ -55,7 +55,6 @@ function pseudo_random()
     return result;
 }
 
-
 // 8 seed works kinda?
 seed(10);
 
@@ -85,13 +84,9 @@ class Player{
     }
 
     //rect(this.x, this.y, this.width, this.height);
-
-
     circle(this.x + this.width/2, this.y+(2*this.height/20), this.height/5); // smallest
     circle(this.x + this.width/2, this.y+(7*this.height/20), this.height*3/10);
     circle(this.x + this.width/2, this.y+(15*this.height/20), this.height/2); // largest
-
-    // debugging
   }
 
   borderCollide(border) {
@@ -258,7 +253,6 @@ function drawButtons() {
   }
 }
 
-
 function drawPlayers() { 
 
   if (keyIsDown(UP_ARROW)) {
@@ -396,7 +390,6 @@ function drawPlayers() {
   player2.show();
 }
 
-
 /* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
@@ -478,15 +471,12 @@ function generateButtons() {
 
   // make toggle buttons
   for (let i = 0; i < BUTTON_COUNT*2; i++) {
-    console.log(used);
     let x; let y;
     do {
-      x = Math.floor(Math.random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
-      y = Math.floor(Math.random()*(GRID_CELLS_ACROSS-2)) + 1.5;
-      console.log(x, y, used.includes(str(x)+ "-" + str(y)));
+      x = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
+      y = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5;
     } while (used.includes(str(x)+ "-" + str(y)));
     used.push(str(x)+ "-" + str(y));
-    console.log("here");
     buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
@@ -495,7 +485,6 @@ function generateButtons() {
 function isGameOver() {
   return !(game_over.includes(false));
 }
-
 
 /* Game setup, run once */
 
