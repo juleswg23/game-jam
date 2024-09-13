@@ -9,9 +9,9 @@ const PLAYER3_COLOR = "green" // TODO create player 3 to player n support
 const BORDER_COLOR = "black";
 
 let SEED = 1;
-let DIFFICULTY = 10;
-let PAGE_SIZE = 1_000;
-let GRID_CELLS_ACROSS = 15;
+let DIFFICULTY = 15;
+let PAGE_SIZE;
+let GRID_CELLS_ACROSS = DIFFICULTY + 2;
 let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
 
 let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
@@ -288,7 +288,7 @@ function drawPlayers() {
       if (player.borderCollide(border)) {
         // if player collides with border of their color,
         if (player.id == border.group) {
-          updateBorders(player.id); // don't update borders now
+          //updateBorders(player.id); // don't update borders now
           continue;
 
         }
@@ -476,14 +476,12 @@ function generateButtons() {
       y = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5;
     } while (used.includes(str(x)+ "-" + str(y)));
     used.push(str(x.toFixed(1))+ "-" + str(y.toFixed(1)));
-    console.log(used);
     buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
 }
 
 function isGameOver() {
-  console.log(game_over);
   return !(game_over.includes(false));
 }
 
@@ -503,6 +501,15 @@ function changeDifficulty(direction) {
 
 function setup() {
   clear();
+
+  DIFFICULTY = Math.min(Math.max(DIFFICULTY, 6), 30);
+  // based on difficulty
+  GRID_CELLS_ACROSS = Math.max(DIFFICULTY + 2, 5);
+  BORDER_FREQ = 0.007*DIFFICULTY + 0.69;
+  GROUP_DENSITY = Math.max(Math.floor(Math.sqrt(DIFFICULTY)), 3);
+  BUTTON_COUNT = Math.max(Math.floor(Math.sqrt(DIFFICULTY)), 2);
+  ACTIVE_RATE = 3;
+
 
   buttons = []
   players = []
@@ -547,6 +554,8 @@ function setup() {
   harder_button = createButton("Harder");
   harder_button.position(buffer*2 + easier_button.width, buffer);
   harder_button.mousePressed(changeDifficulty("harder"));
+
+  console.log(BORDER_FREQ, GROUP_DENSITY, BUTTON_COUNT, ACTIVE_RATE)
 }
 
 /* Game loop */
@@ -564,7 +573,6 @@ function draw() {
   strokeWeight(2); drawPlayers();
 
   if (isGameOver()) {
-    console.log("game over");
     game_over = new Array(players.length).fill(false);
     window.alert("You won! Game difficulty will go up.");
     let func = changeDifficulty("harder");
