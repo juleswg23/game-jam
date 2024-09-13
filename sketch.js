@@ -545,7 +545,7 @@ function setup() {
   image(bg, 0, 0);
 
   generateBorders();
-  checkered_flag = loadImage("libraries/checkered-flag.png");
+  checkered_flag = loadImage("checkered-flag.png");
   generateButtons();
 
   /* user interactive buttons */  
