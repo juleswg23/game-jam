@@ -11,7 +11,7 @@ const BORDER_COLOR = "black";
 let SEED = 1;
 let DIFFICULTY = 10;
 let PAGE_SIZE = 1_000;
-let GRID_CELLS_ACROSS = 20;
+let GRID_CELLS_ACROSS = 50;
 let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
 
 let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
@@ -30,6 +30,7 @@ let checkered_flag;
 let new_game_button;
 let easier_button;
 let harder_button;
+let difficulty_text;
 
 let game_over = [];
 let players = [];
@@ -494,13 +495,13 @@ function newGamePressed() {
 function changeDifficulty(direction) {
   return function() {
     DIFFICULTY += direction == "harder" ? 1 : -1;
+    setup();
   }
 }
 
 /* Game setup, run at start of game */
 
 function setup() {
-
   clear();
 
   buttons = []
@@ -531,18 +532,26 @@ function setup() {
 
   /* user interactive buttons */  
 
+  if (new_game_button) new_game_button.hide();
   new_game_button = createButton("New Game");
   let buffer = (GRID_CELL_WIDTH - new_game_button.height)/2;
   new_game_button.position(PAGE_SIZE - new_game_button.width - buffer, buffer);
   new_game_button.mousePressed(newGamePressed);
 
+  if (easier_button) harder_button.hide();
   easier_button = createButton("Easier");
   easier_button.position(buffer, buffer);
   easier_button.mousePressed(changeDifficulty("easier"));
 
+  if (harder_button) harder_button.hide();
   harder_button = createButton("Harder");
   harder_button.position(buffer*2 + easier_button.width, buffer);
   harder_button.mousePressed(changeDifficulty("harder"));
+
+  if (difficulty_text) difficulty_text.hide();
+  console.log("printing text");
+  difficulty_text = createP("Difficulty: " + str(DIFFICULTY));
+  difficulty_text.position(buffer*3 + easier_button.width + harder_button.width, 0); // need to figure out position
 }
 
 /* Game loop */
@@ -555,10 +564,11 @@ function draw() {
 
   strokeWeight(2); drawPlayers();
   if (isGameOver()) {
+    game_over = new Array(players.length).fill(false);
+    // TODO handle winning
+
     //setup();
   }
-
-  console.log(DIFFICULTY);
 }
 
 // TODOS
