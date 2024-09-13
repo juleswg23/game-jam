@@ -5,24 +5,29 @@ const KeyD = 68;
 
 const PLAYER1_COLOR = "blue";
 const PLAYER2_COLOR = "red";
+const PLAYER3_COLOR = "green" // TODO create player 3 to player n support
 const BORDER_COLOR = "black";
-const BORDER_WIDTH = 6;
 
-const PAGE_SIZE = 1_000;
-const PLAYER_HEIGHT = PAGE_SIZE/25;
-const STEP_SIZE = PLAYER_HEIGHT/5;
-const GRID_ORDER = Math.ceil(PAGE_SIZE/100);
-const GRID_CELL_WIDTH = PAGE_SIZE/GRID_ORDER;
+//window size?
 
-const BORDER_FREQ = 0.7;
-const GROUP_DENSITY = 5;
-const BUTTON_COUNT = 2;
-const ACTIVE_RATE = 3;
+let PAGE_SIZE = 1_000;
+let GRID_CELLS_ACROSS = 5;
+let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
+
+let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
+let STEP_SIZE = GRID_CELL_WIDTH/14;
+
+let BORDER_WIDTH = GRID_CELL_WIDTH/10;
+let BORDER_FREQ = 0.8;
+let GROUP_DENSITY = 4;
+let BUTTON_COUNT = 0;
+let ACTIVE_RATE = 3;
 
 let player1;
 let player2;
 let bg;
 let checkered_flag;
+let game_over = [];
 
 let players = [];
 let borders = [];
@@ -52,7 +57,7 @@ function pseudo_random()
 
 
 // 8 seed works kinda?
-seed(9);
+seed(10);
 
 /* Game logic */ 
 
@@ -79,7 +84,7 @@ class Player{
         break;
     }
 
-    rect(this.x, this.y, this.width, this.height);
+    //rect(this.x, this.y, this.width, this.height);
 
 
     circle(this.x + this.width/2, this.y+(2*this.height/20), this.height/5); // smallest
@@ -130,11 +135,14 @@ class Player{
 
         break;
       case "finish":
-
+        if (this.x < button.x+button.size && button.x < this.x+this.width &&
+          this.y < button.y+button.size && button.y < this.y+this.height) {
+            // if overlapping, return true
+            return true;
+        }
       default:
         break;
     }
-
     return false;
   }
 
@@ -182,7 +190,7 @@ class Border {
 }
 
 class Button {
-  constructor( x, y, size, group, type) {
+  constructor(x, y, size, group, type) {
     this.group = group;
     this.type = type;
     this.x = x;
@@ -288,7 +296,7 @@ function drawPlayers() {
 
         // if player collides with border of their color,
         if (player.id == border.group) {
-          //updateBorders(player.id); // don't update borders now
+          updateBorders(player.id); // don't update borders now
           continue;
 
         }
@@ -358,6 +366,9 @@ function drawPlayers() {
           // made it to finish line
           case "finish":
             // TODO some finish line action!
+            if (player.id == button.group && !game_over[player.id-1]) {
+              button.isColliding[player.id-1] = true;
+            }
             break;
           default:
             break; // pass
@@ -366,6 +377,7 @@ function drawPlayers() {
       else {
         button.isColliding[player.id-1] = false;
       }
+      game_over[button.group-1] = (button.isColliding[button.group-1] && button.type == "finish");
     }
 
     // collide with wall
@@ -389,8 +401,8 @@ function drawPlayers() {
 /* Helper for creating borders, run once */
 function generateBorders() {
   // create horizontal borders
-  for (let i = 1; i < GRID_ORDER-1; i++) {
-    for (let j = 1; j < GRID_ORDER; j++) {
+  for (let i = 1; i < GRID_CELLS_ACROSS-1; i++) {
+    for (let j = 1; j < GRID_CELLS_ACROSS; j++) {
       if (pseudo_random() < BORDER_FREQ) {
         borders.push(new Border(i*GRID_CELL_WIDTH, j*GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0, 0));
       }
@@ -398,8 +410,8 @@ function generateBorders() {
   }
 
   // create vertical borders
-  for (let i = 1; i < GRID_ORDER; i++) {
-    for (let j = 1; j < GRID_ORDER-1; j++) {
+  for (let i = 1; i < GRID_CELLS_ACROSS; i++) {
+    for (let j = 1; j < GRID_CELLS_ACROSS-1; j++) {
       if (pseudo_random() < BORDER_FREQ*2/3) {
         borders.push(new Border(i*GRID_CELL_WIDTH, j*GRID_CELL_WIDTH, GRID_CELL_WIDTH, false, 0, 0));
       }
@@ -428,7 +440,7 @@ function generateBorders() {
   }
 
   //create boundary borders
-  for (let i = 1; i < GRID_ORDER-1; i++) {
+  for (let i = 1; i < GRID_CELLS_ACROSS-1; i++) {
     borders.push(new Border(i*GRID_CELL_WIDTH, GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0, 0));
     borders.push(new Border(i*GRID_CELL_WIDTH, PAGE_SIZE-GRID_CELL_WIDTH, GRID_CELL_WIDTH, true, 0, 0));
     borders.push(new Border(GRID_CELL_WIDTH, i*GRID_CELL_WIDTH, GRID_CELL_WIDTH, false, 0, 0));
@@ -459,17 +471,25 @@ function generateButtons() {
   for (let p of players) {
     let x = PAGE_SIZE - p.x;
     let y = PAGE_SIZE - p.y;
-    buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish")); // we are not guarenteed that this will be unique
+    buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish"));
   }
 
 
   // make toggle buttons
   for (let i = 0; i < BUTTON_COUNT*2; i++) {
-    let x = Math.floor(pseudo_random()*(GRID_ORDER-2)) + 1.5; // ensure no button outside of grid
-    let y = Math.floor(pseudo_random()*(GRID_ORDER-2)) + 1.5;
+    //let x; let y;
+    // do {
+      x = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
+      y = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5;
+    // } while (x > y);
+    // console.log("here");
     buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
+}
+
+function isGameOver() {
+  return !(game_over.includes(false));
 }
 
 
@@ -477,9 +497,18 @@ function generateButtons() {
 
 function setup() {
   clear();
+
+  PAGE_SIZE = Math.min(windowWidth, windowHeight);
+  GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
+  PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
+  STEP_SIZE = GRID_CELL_WIDTH/14;
+  BORDER_WIDTH = GRID_CELL_WIDTH/10;
+
   player1 = new Player(1.5*GRID_CELL_WIDTH, 1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 1);
   player2 = new Player(PAGE_SIZE-1.5*GRID_CELL_WIDTH, PAGE_SIZE-1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
   players = [player1, player2];
+
+  game_over = new Array(players.length).fill(false);
 
   createCanvas(PAGE_SIZE, PAGE_SIZE);
   bg = createGraphics(PAGE_SIZE, PAGE_SIZE);
@@ -500,6 +529,9 @@ function draw() {
   drawButtons();
 
   strokeWeight(2); drawPlayers();
+  if (isGameOver()) {
+    //setup();
+  }
 }
 
 // TODOS
