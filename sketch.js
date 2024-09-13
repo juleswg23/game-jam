@@ -20,7 +20,7 @@ let STEP_SIZE = GRID_CELL_WIDTH/14;
 let BORDER_WIDTH = GRID_CELL_WIDTH/10;
 let BORDER_FREQ = 0.8;
 let GROUP_DENSITY = 4;
-let BUTTON_COUNT = 0;
+let BUTTON_COUNT = 2;
 let ACTIVE_RATE = 3;
 
 let player1;
@@ -365,7 +365,6 @@ function drawPlayers() {
             break;
           // made it to finish line
           case "finish":
-            // TODO some finish line action!
             if (player.id == button.group && !game_over[player.id-1]) {
               button.isColliding[player.id-1] = true;
             }
@@ -466,23 +465,28 @@ function generateBorders() {
 
 /* Helper for creating buttons, run once */
 function generateButtons() {
+  let used = [];
   // make finish buttons
   // TODO
   for (let p of players) {
     let x = PAGE_SIZE - p.x;
     let y = PAGE_SIZE - p.y;
+    used.push(str(x/GRID_CELL_WIDTH)+ "-" + str(y/GRID_CELL_WIDTH));
     buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish"));
   }
 
 
   // make toggle buttons
   for (let i = 0; i < BUTTON_COUNT*2; i++) {
-    //let x; let y;
-    // do {
-      x = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
-      y = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5;
-    // } while (x > y);
-    // console.log("here");
+    console.log(used);
+    let x; let y;
+    do {
+      x = Math.floor(Math.random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
+      y = Math.floor(Math.random()*(GRID_CELLS_ACROSS-2)) + 1.5;
+      console.log(x, y, used.includes(str(x)+ "-" + str(y)));
+    } while (used.includes(str(x)+ "-" + str(y)));
+    used.push(str(x)+ "-" + str(y));
+    console.log("here");
     buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
@@ -505,7 +509,7 @@ function setup() {
   BORDER_WIDTH = GRID_CELL_WIDTH/10;
 
   player1 = new Player(1.5*GRID_CELL_WIDTH, 1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 1);
-  player2 = new Player(PAGE_SIZE-1.5*GRID_CELL_WIDTH, PAGE_SIZE-1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
+  player2 = new Player((GRID_CELLS_ACROSS-1.5)*GRID_CELL_WIDTH, (GRID_CELLS_ACROSS-1.5)*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
   players = [player1, player2];
 
   game_over = new Array(players.length).fill(false);
@@ -535,9 +539,5 @@ function draw() {
 }
 
 // TODOS
-// simultaneous actions
 // Border animations
 // sound on collide
-
-// layer the borders - black on top?
-
