@@ -8,10 +8,10 @@ const PLAYER2_COLOR = "red";
 const PLAYER3_COLOR = "green" // TODO create player 3 to player n support
 const BORDER_COLOR = "black";
 
-//window size?
-
+let SEED = 1;
+let DIFFICULTY = 10;
 let PAGE_SIZE = 1_000;
-let GRID_CELLS_ACROSS = 5;
+let GRID_CELLS_ACROSS = 20;
 let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
 
 let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
@@ -27,8 +27,11 @@ let player1;
 let player2;
 let bg;
 let checkered_flag;
-let game_over = [];
+let new_game_button;
+let easier_button;
+let harder_button;
 
+let game_over = [];
 let players = [];
 let borders = [];
 let buttons = [];
@@ -54,9 +57,6 @@ function pseudo_random()
     result /= 4294967296;
     return result;
 }
-
-// 8 seed works kinda?
-seed(10);
 
 /* Game logic */ 
 
@@ -486,16 +486,31 @@ function isGameOver() {
   return !(game_over.includes(false));
 }
 
-/* Game setup, run once */
+function newGamePressed() {
+  SEED += 1;
+  setup();
+}
+
+function changeDifficulty(difficulty) {
+  
+}
+
+/* Game setup, run at start of game */
 
 function setup() {
+
   clear();
+
+  buttons = []
+  players = []
+  borders = []
 
   PAGE_SIZE = Math.min(windowWidth, windowHeight);
   GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
   PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
   STEP_SIZE = GRID_CELL_WIDTH/14;
   BORDER_WIDTH = GRID_CELL_WIDTH/10;
+  seed(SEED);
 
   player1 = new Player(1.5*GRID_CELL_WIDTH, 1.5*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 1);
   player2 = new Player((GRID_CELLS_ACROSS-1.5)*GRID_CELL_WIDTH, (GRID_CELLS_ACROSS-1.5)*GRID_CELL_WIDTH, PLAYER_HEIGHT, STEP_SIZE, 2);
@@ -511,6 +526,21 @@ function setup() {
   generateBorders();
   checkered_flag = loadImage("libraries/checkered-flag.png");
   generateButtons();
+
+  /* user interactive buttons */  
+
+  new_game_button = createButton("New Game");
+  let buffer = (GRID_CELL_WIDTH - new_game_button.height)/2;
+  new_game_button.position(PAGE_SIZE - new_game_button.width - buffer, buffer);
+  new_game_button.mousePressed(newGamePressed);
+
+  easier_button = createButton("Easier");
+  easier_button.position(buffer, buffer);
+  easier_button.mousePressed(changeDifficulty);
+
+  harder_button = createButton("Harder");
+  harder_button.position(buffer*2 + easier_button.width, buffer);
+  harder_button.mousePressed(changeDifficulty);
 }
 
 /* Game loop */
