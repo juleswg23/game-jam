@@ -491,8 +491,10 @@ function newGamePressed() {
   setup();
 }
 
-function changeDifficulty(difficulty) {
-  
+function changeDifficulty(direction) {
+  return function() {
+    DIFFICULTY += direction == "harder" ? 1 : -1;
+  }
 }
 
 /* Game setup, run at start of game */
@@ -536,11 +538,11 @@ function setup() {
 
   easier_button = createButton("Easier");
   easier_button.position(buffer, buffer);
-  easier_button.mousePressed(changeDifficulty);
+  easier_button.mousePressed(changeDifficulty("easier"));
 
   harder_button = createButton("Harder");
   harder_button.position(buffer*2 + easier_button.width, buffer);
-  harder_button.mousePressed(changeDifficulty);
+  harder_button.mousePressed(changeDifficulty("harder"));
 }
 
 /* Game loop */
@@ -555,6 +557,8 @@ function draw() {
   if (isGameOver()) {
     //setup();
   }
+
+  console.log(DIFFICULTY);
 }
 
 // TODOS
