@@ -11,7 +11,7 @@ const BORDER_COLOR = "black";
 let SEED = 1;
 let DIFFICULTY = 10;
 let PAGE_SIZE = 1_000;
-let GRID_CELLS_ACROSS = 50;
+let GRID_CELLS_ACROSS = 15;
 let GRID_CELL_WIDTH = (PAGE_SIZE/GRID_CELLS_ACROSS);
 
 let PLAYER_HEIGHT = GRID_CELL_WIDTH/2;
@@ -30,7 +30,6 @@ let checkered_flag;
 let new_game_button;
 let easier_button;
 let harder_button;
-let difficulty_text;
 
 let game_over = [];
 let players = [];
@@ -287,8 +286,6 @@ function drawPlayers() {
     player.step = STEP_SIZE;
     for (let border of borders) {
       if (player.borderCollide(border)) {
-        console.log("collide with ", border.group);
-
         // if player collides with border of their color,
         if (player.id == border.group) {
           updateBorders(player.id); // don't update borders now
@@ -367,11 +364,12 @@ function drawPlayers() {
           default:
             break; // pass
         }
-      }
-      else {
+      } else {
         button.isColliding[player.id-1] = false;
       }
-      game_over[button.group-1] = (button.isColliding[button.group-1] && button.type == "finish");
+      if (button.type == "finish") {
+        game_over[button.group-1] = button.isColliding[button.group-1];
+      }
     }
 
     // collide with wall
@@ -465,7 +463,7 @@ function generateButtons() {
   for (let p of players) {
     let x = PAGE_SIZE - p.x;
     let y = PAGE_SIZE - p.y;
-    used.push(str(x/GRID_CELL_WIDTH)+ "-" + str(y/GRID_CELL_WIDTH));
+    used.push(str((x/GRID_CELL_WIDTH).toFixed(1))+ "-" + str((y/GRID_CELL_WIDTH).toFixed(1)));
     buttons.push(new Button(x, y, GRID_CELL_WIDTH/2, p.id, "finish"));
   }
 
@@ -477,13 +475,15 @@ function generateButtons() {
       x = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5; // ensure no button outside of grid
       y = Math.floor(pseudo_random()*(GRID_CELLS_ACROSS-2)) + 1.5;
     } while (used.includes(str(x)+ "-" + str(y)));
-    used.push(str(x)+ "-" + str(y));
+    used.push(str(x.toFixed(1))+ "-" + str(y.toFixed(1)));
+    console.log(used);
     buttons.push(new Button(x * GRID_CELL_WIDTH, y * GRID_CELL_WIDTH, GRID_CELL_WIDTH/4, (i%players.length) + 1, "toggle"));
   }
 
 }
 
 function isGameOver() {
+  console.log(game_over);
   return !(game_over.includes(false));
 }
 
@@ -538,7 +538,7 @@ function setup() {
   new_game_button.position(PAGE_SIZE - new_game_button.width - buffer, buffer);
   new_game_button.mousePressed(newGamePressed);
 
-  if (easier_button) harder_button.hide();
+  if (easier_button) easier_button.hide();
   easier_button = createButton("Easier");
   easier_button.position(buffer, buffer);
   easier_button.mousePressed(changeDifficulty("easier"));
@@ -547,11 +547,6 @@ function setup() {
   harder_button = createButton("Harder");
   harder_button.position(buffer*2 + easier_button.width, buffer);
   harder_button.mousePressed(changeDifficulty("harder"));
-
-  if (difficulty_text) difficulty_text.hide();
-  console.log("printing text");
-  difficulty_text = createP("Difficulty: " + str(DIFFICULTY));
-  difficulty_text.position(buffer*3 + easier_button.width + harder_button.width, 0); // need to figure out position
 }
 
 /* Game loop */
@@ -562,12 +557,18 @@ function draw() {
   drawBorders();
   drawButtons();
 
-  strokeWeight(2); drawPlayers();
-  if (isGameOver()) {
-    game_over = new Array(players.length).fill(false);
-    // TODO handle winning
+  let buffer = (GRID_CELL_WIDTH - new_game_button.height)/2;
+  strokeWeight(0); fill(0); textSize(GRID_CELL_WIDTH/2);
+  text("Difficulty: " + str(DIFFICULTY), buffer*3 + easier_button.width + harder_button.width, + GRID_CELL_WIDTH*2/3);
 
-    //setup();
+  strokeWeight(2); drawPlayers();
+
+  if (isGameOver()) {
+    console.log("game over");
+    game_over = new Array(players.length).fill(false);
+    window.alert("You won! Game difficulty will go up.");
+    let func = changeDifficulty("harder");
+    func();
   }
 }
 
